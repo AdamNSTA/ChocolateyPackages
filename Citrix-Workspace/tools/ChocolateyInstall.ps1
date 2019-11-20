@@ -48,12 +48,17 @@ Function Get-DownloadUri {
     Begin {        
     }
     Process {        
-        $htmlAgilityPackPath = '{0}\HtmlAgilityPack.dll' -f (Split-Path -Path $MyInvocation.MyCommand.Path)        
+        #$htmlAgilityPackPath = '{0}\HtmlAgilityPack.dll' -f (Split-Path -Path $PSScriptRoot)        
+        $htmlAgilityPackPath = Join-Path -Path $PSScriptRoot -ChildPath HtmlAgilityPack.dll
         [System.Reflection.Assembly]::LoadFrom($htmlAgilityPackPath) | Out-Null        
         
         <# Citrix sign the download link via Javascript so we have to parse the page to get the signed download Uri. #>
         Write-Host "Resolving latest Citrix Workspace app ($($latest.Version)) download token..."
-        $releaseUriWebResponse = (New-Object -TypeName System.Net.WebClient).DownloadString($latest.Url)
+        #$releaseUriWebResponse = New-Object -TypeName System.Net.WebClient
+        #$releaseUriWebResponse.DownloadString($latest.Url)
+        #$releaseUriWebResponse.Headers['user-agent'] = "myUserAgentString"
+        $releaseUriWebResponse = Invoke-WebRequest -Uri "$url" -UserAgent "adlkjhaslkfhjsdafkljhasdfkljasdklf"
+
         $htmlDocument = New-Object -TypeName 'HtmlAgilityPack.HtmlDocument'
         $htmlDocument.LoadHtml($releaseUriWebResponse)
         $relativeUri = $htmlDocument.DocumentNode.SelectNodes('//a') |
