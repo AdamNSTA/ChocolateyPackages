@@ -48,17 +48,21 @@ Function Get-DownloadUri {
     Begin {        
     }
     Process {        
-        ## Kindly borrowed from https://github.com/chocolatey-community/chocolatey-coreteampackages/blob/master/automatic/wps-office-free/update_helper.ps1
-        $READYSTATE_READY = 4
-        $internetExplorer = New-Object -ComObject InternetExplorer.Application
-        $internetExplorer.Navigate2($releaseUri) 
-        $internetExplorer.Visible = $false
-        while ($internetExplorer.ReadyState -ne $READYSTATE_READY) {
-            Start-Sleep -Seconds 1
-        }
-        $link = $internetExplorer.Document.getElementsByTagName('a') | Where-Object { $_.href -match '.html#ctx-dl-eula$' } | Select-Object -First 1 
-        $downloadUri = 'https:{0}' -f $link.rel
-        $internetExplorer.Quit()
+        $htmlAgilityPackPath = '{0}\HtmlAgilityPack.dll' -f (Split-Path -Path $MyInvocation.MyCommand.Path)        
+        [System.Reflection.Assembly]::LoadFrom($htmlAgilityPackPath) | Out-Null        
+        
+        <# Citrix sign the download link via Javascript so we have to parse the page to get the signed download Uri. #>
+        Write-Host "Resolving latest Citrix Workspace app ($($latest.Version)) download token..."
+        $releaseUriWebResponse = (New-Object -TypeName System.Net.WebClient).DownloadString($latest.Url)
+        $htmlDocument = New-Object -TypeName 'HtmlAgilityPack.HtmlDocument'
+        $htmlDocument.LoadHtml($releaseUriWebResponse)
+        $relativeUri = $htmlDocument.DocumentNode.SelectNodes('//a') |
+            ForEach-Object { $_.Attributes } |
+                Where-Object { $_.Value -match 'CitrixWorkspaceApp.exe' } |
+                    Select-Object -ExpandProperty Value
+        $downloadUri = 'https:{0}' -f $relativeUri
+    
+        $downloadUri
     }
     End {
     }
@@ -66,6 +70,7 @@ Function Get-DownloadUri {
 
 Function Get-ChocolateyPackageParams {    
     param([Parameter(Mandatory, ValueFromPipeline)][string] $downloadUri)    
+
     Begin {        
     }
     Process {
@@ -74,7 +79,7 @@ Function Get-ChocolateyPackageParams {
             FileType       = "EXE";
             SilentArgs     = "/noreboot /silent";
             Url            = "$downloadUri";
-            ValidExitCodes = @(0, 3010);
+            ValidExitCodes = @(0,3010);
             Checksum       = "1DA12FCFE95944693C9628C2CF3349102717317D3BFFDEDDF7384087383BA430";
             ChecksumType   = "sha256";
         }
