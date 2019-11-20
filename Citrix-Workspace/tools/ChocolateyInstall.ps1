@@ -82,10 +82,10 @@ Function Get-ChocolateyPackageParams {
         $installChocolateyPackageParams = @{
             PackageName    = "Citrix-Workspace";
             FileType       = "EXE";
-            SilentArgs     = "/noreboot /silent";
+            SilentArgs     = "/noreboot /silent /includeSSON";
             Url            = "$downloadUri";
             ValidExitCodes = @(0,3010);
-            Checksum       = "1DA12FCFE95944693C9628C2CF3349102717317D3BFFDEDDF7384087383BA430";
+            Checksum       = "84056DA6674D09DD4861EC1EA7F435282CC469CB90075BD1AC569A4F60F5BF2B";
             ChecksumType   = "sha256";
         }
     
