@@ -83,7 +83,7 @@ Function Get-ChocolateyPackageParams {
             SilentArgs     = "/noreboot /silent /includeSSON";
             Url            = "$downloadUri";
             ValidExitCodes = @(0,3010);
-            Checksum       = "84056DA6674D09DD4861EC1EA7F435282CC469CB90075BD1AC569A4F60F5BF2B";
+            Checksum       = "9D7938052358F419D1FC895C227DD9C9023A727EA2E067BAFEE980B047599E24";
             ChecksumType   = "sha256";
         }
     
